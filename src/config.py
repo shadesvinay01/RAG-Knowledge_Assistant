@@ -32,7 +32,8 @@ class Config(BaseModel):
     IMPROVED_TOP_K: int = 5
     CHUNK_SIZE: int = 400
     CHUNK_OVERLAP: int = 80
-    GROUNDEDNESS_THRESHOLD: float = 0.40
+    GROUNDEDNESS_THRESHOLD: float = 0.25
     CACHE_SIMILARITY_THRESHOLD: float = 0.92
+
 
 config = Config()
