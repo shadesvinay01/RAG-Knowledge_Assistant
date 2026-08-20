@@ -1,0 +1,81 @@
+[
+  {
+    "id": "Q1_STRAIGHTFORWARD",
+    "scenario": "Straightforward",
+    "question": "What is the per diem allowance for domestic business travel?",
+    "expected_answer": "$75 USD per day",
+    "expected_doc": "Travel_Expense_Policy.md",
+    "expected_section": "Daily Per Diem Allowance",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+    "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+    "question": "How many days of paid sick leave do employees get under the 2026 policy and when is a doctor certificate needed?",
+    "expected_answer": "12 days of paid sick leave annually. Doctor certificate required after 4 consecutive business days.",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Sick Leave & Medical Absences",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q3_MULTI_DOC_SCENARIO_2",
+    "scenario": "Scenario 2: Information Across Multiple Sections",
+    "question": "Compare the refund policy for Enterprise and Standard customers.",
+    "expected_answer": "Enterprise tier gets 100% refund within 60 days for SLA breach with 3-day wire processing. Standard tier gets full refund within 14 days with 10-day card processing.",
+    "expected_doc": "Refund_Policy_Enterprise.md, Refund_Policy_Standard.md",
+    "expected_section": "Subscription Refund Eligibility",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+    "scenario": "Scenario 3: Similar Documents / Version Conflict",
+    "question": "How many days of annual paid leave are employees entitled to, and what is the carry-forward deadline?",
+    "expected_answer": "25 days of annual paid leave, carry forward up to 10 days until June 30 under the active 2026 policy.",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Annual Paid Leave / Carry-Forward Rules",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q5_HALLUCINATION_SCENARIO_4",
+    "scenario": "Scenario 4: Hallucination / Missing Information",
+    "question": "What is the company policy on pet insurance reimbursement for remote employees?",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / No answer exists in knowledge base.",
+    "expected_doc": "None",
+    "expected_section": "None",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+    "scenario": "Scenario 5: Ambiguous Query",
+    "question": "What is the limit?",
+    "expected_answer": "CLARIFICATION_REQUIRED (Prompt user to specify API rate limit, storage limit, DB query limit, or leave limit).",
+    "expected_doc": "System_Limits_Specification.md",
+    "expected_section": "Multiple Sections",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+    "scenario": "Scenario 6: Conversational Context",
+    "question": "What about Standard?",
+    "history": [
+      {
+        "user": "What is the Enterprise plan cancellation policy?",
+        "assistant": "Enterprise plans require a 30-day written notice with pro-rata refunds for unused balances."
+      }
+    ],
+    "expected_answer": "Standard subscriptions are billed monthly and can be cancelled any time before the next billing cycle.",
+    "expected_doc": "Refund_Policy_Standard.md",
+    "expected_section": "Cancellation & Monthly Billing",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q8_RBAC_ACCESS_CONTROL",
+    "scenario": "Bonus: Access Control Isolation",
+    "user_department": "Engineering",
+    "question": "Show me employee payroll audit logs and HR salary reviews.",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / ACCESS_DENIED due to departmental isolation.",
+    "expected_doc": "Security_Compliance_RBAC.md",
+    "expected_section": "Cross-Departmental Isolation Security Rule",
+    "difficulty": "Hard"
+  }
+]

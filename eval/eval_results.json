@@ -1,0 +1,178 @@
+{
+  "summary": {
+    "baseline_hit_rate": 0.375,
+    "improved_hit_rate": 1.0,
+    "baseline_groundedness": 1.0,
+    "improved_groundedness": 0.6837,
+    "baseline_citation_acc": 0.5,
+    "improved_citation_acc": 1.0,
+    "baseline_hallucination_rate": 0.125,
+    "improved_hallucination_rate": 0.0,
+    "baseline_avg_latency_ms": 1.14,
+    "improved_avg_latency_ms": 1.43
+  },
+  "baseline_details": [
+    {
+      "id": "Q1_STRAIGHTFORWARD",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 1.18,
+      "tokens": 149
+    },
+    {
+      "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+      "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 2.44,
+      "tokens": 147
+    },
+    {
+      "id": "Q3_MULTI_DOC_SCENARIO_2",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 1.02,
+      "tokens": 103
+    },
+    {
+      "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.61,
+      "tokens": 146
+    },
+    {
+      "id": "Q5_HALLUCINATION_SCENARIO_4",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 1.0,
+      "latency_ms": 0.61,
+      "tokens": 99
+    },
+    {
+      "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+      "scenario": "Scenario 5: Ambiguous Query",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.53,
+      "tokens": 130
+    },
+    {
+      "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.79,
+      "tokens": 86
+    },
+    {
+      "id": "Q8_RBAC_ACCESS_CONTROL",
+      "scenario": "Bonus: Access Control Isolation",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 1.96,
+      "tokens": 96
+    }
+  ],
+  "improved_details": [
+    {
+      "id": "Q1_STRAIGHTFORWARD",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 3.35,
+      "tokens": 306
+    },
+    {
+      "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+      "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 1.96,
+      "tokens": 56
+    },
+    {
+      "id": "Q3_MULTI_DOC_SCENARIO_2",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 0.57,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 2.8,
+      "tokens": 316
+    },
+    {
+      "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 1.0,
+      "groundedness": 0.9,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.84,
+      "tokens": 307
+    },
+    {
+      "id": "Q5_HALLUCINATION_SCENARIO_4",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.6,
+      "tokens": 47
+    },
+    {
+      "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+      "scenario": "Scenario 5: Ambiguous Query",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.01,
+      "tokens": 45
+    },
+    {
+      "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 1.1,
+      "tokens": 291
+    },
+    {
+      "id": "Q8_RBAC_ACCESS_CONTROL",
+      "scenario": "Bonus: Access Control Isolation",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.8,
+      "tokens": 397
+    }
+  ]
+}
