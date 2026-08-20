@@ -373,8 +373,9 @@ class ImprovedEnterpriseRAGEngine:
                 max_overlap = score
 
         top_rerank_score = chunks[0]["score"] if chunks else 0.0
-        combined_score = 0.7 * max_overlap + 0.3 * min(top_rerank_score * 30.0, 1.0)
+        combined_score = 0.85 * max_overlap + 0.15 * min(top_rerank_score * 30.0, 1.0)
         return min(combined_score, 1.0)
+
 
     def _build_grounded_context(self, chunks: List[Dict[str, Any]]) -> str:
         ctx_parts = []
