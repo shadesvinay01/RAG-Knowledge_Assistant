@@ -83,8 +83,9 @@ class AzureDocumentIntelligenceParser:
             except Exception:
                 pass
 
-            print(f"[Dead-Letter Ingestion Log] Could not extract text from binary document '{filename}'. File logged to dead-letter queue.")
-            return f"# Document: {filename}\n[Binary document processing logged to Azure dead-letter queue]."
+            print(f"[Ingestion Log] Could not extract text from binary document '{filename}'. File flagged for manual handling/retry.")
+            return f"# Document: {filename}\n[Binary document processing failed; document requires manual handling/retry]."
+
 
         # UTF-8 text/Markdown parsing
         try:

@@ -38,11 +38,11 @@
 ### 4. Quantitative Evaluation Results (03:15 - 04:15)
 - **Demo Action:** Open "Evaluation Benchmark" tab.
 - **Speaker Script:**  
-  *"We built an automated evaluation benchmark comparing Baseline vs Improved RAG across 8 comprehensive enterprise test cases:*  
-  *- **Retrieval Hit Rate** increased from **50.0% to 100.0%** (+50%).*  
-  *- **Groundedness Score** improved from **44.0% to 92.0%** (+48%).*  
-  *- **Citation Accuracy** improved from **37.5% to 100.0%**.*  
-  *- **Hallucination Rate** dropped from **37.5% to 0.0%**.*"
+  *"We built an automated evaluation benchmark comparing Baseline vs Improved RAG across 32 comprehensive enterprise test cases in offline evaluation mode:*  
+  *- **Retrieval Hit Rate @ K** increased from **53.1% to 75.0%** (+21.9%).*  
+  *- **Citation Accuracy** improved from **65.6% to 71.9%** (+6.3%).*  
+  *- **Hallucination Rate** dropped from **12.5% to 3.1%** (-9.4%).*"
+
 
 ### 5. Production Readiness & Conclusion (04:15 - 05:00)
 - **Speaker Script:**  
