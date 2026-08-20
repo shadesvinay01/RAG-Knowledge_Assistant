@@ -358,8 +358,13 @@ class ImprovedEnterpriseRAGEngine:
         if not chunks:
             return 0.0
         
-        stopwords = {"what", "is", "the", "on", "for", "in", "and", "or", "to", "of", "a", "an", "are", "policy", "company"}
-        q_words = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 3 and w.lower() not in stopwords]
+        stopwords = {
+            "what", "is", "the", "on", "for", "in", "and", "or", "to", "of", "a", "an", "are", 
+            "policy", "company", "how", "many", "does", "do", "get", "when", "under", "needed", 
+            "tell", "show", "much", "with", "from", "about", "have", "has", "can", "will"
+        }
+        q_words = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 2 and w.lower() not in stopwords]
+
         
         if not q_words:
             return 0.8
