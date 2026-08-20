@@ -23,7 +23,6 @@ class BaselineRAGEngine:
         start_time = time.time()
         q_vec = self.embedding_engine.embed_query(user_query)
         
-        # Naive Vector Search (No Hybrid, No Reranker, No Metadata/Status Filters)
         retrieved_chunks = self.search_engine.search(
             query=user_query,
             query_vector=q_vec,
@@ -31,7 +30,7 @@ class BaselineRAGEngine:
             use_hybrid=False,
             use_reranker=False,
             use_parent_content=False,
-            include_superseded=True # Baseline retrieves superseded 2024 policy chunks
+            include_superseded=True
         )
 
         context_str = "\n\n".join([f"Source: {c['doc_name']}\n{c['content']}" for c in retrieved_chunks])
@@ -39,11 +38,9 @@ class BaselineRAGEngine:
         latency = round((time.time() - start_time) * 1000, 2)
 
         citations = [f"{c['doc_name']} ({c['header']})" for c in retrieved_chunks]
-        
         tokens_used = len(user_query.split()) + len(context_str.split()) + len(answer.split())
         est_cost = (len(context_str.split()) * (config.COST_PER_1K_INPUT_TOKENS / 1000.0)) + (len(answer.split()) * (config.COST_PER_1K_OUTPUT_TOKENS / 1000.0))
 
-        # Log trace to App Insights telemetry
         telemetry.log_request(
             request_id=str(uuid.uuid4())[:8],
             user_query=user_query,
@@ -98,12 +95,27 @@ class ImprovedEnterpriseRAGEngine:
     Production-Grade Enterprise RAG Engine:
     Solves Scenario 1 (Wrong Chunk), Scenario 2 (Multi-Section), Scenario 3 (Version Conflict),
     Scenario 4 (Hallucination), Scenario 5 (Ambiguous Query), Scenario 6 (Conversational Context),
-    with Entra ID RBAC Filtering, Citation Verification, and App Insights Telemetry.
+    with Azure OpenAI GPT-4o Chat Completion, Entra ID RBAC Filtering, Citation Verification, and App Insights.
     """
     def __init__(self, search_engine: HybridSearchEngine, embedding_engine: EmbeddingEngine):
         self.search_engine = search_engine
         self.embedding_engine = embedding_engine
         self.semantic_cache: Dict[str, Dict[str, Any]] = {}
+        
+        self.use_azure_openai = bool(config.AZURE_OPENAI_KEY and "your-azure" not in config.AZURE_OPENAI_ENDPOINT)
+        self.openai_client = None
+
+        if self.use_azure_openai:
+            try:
+                from openai import AzureOpenAI
+                self.openai_client = AzureOpenAI(
+                    azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
+                    api_key=config.AZURE_OPENAI_KEY,
+                    api_version=config.AZURE_OPENAI_API_VERSION
+                )
+            except Exception as e:
+                print(f"[Warning] Azure OpenAI Chat Client initialization skipped ({e}). Using grounded synthesis.")
+                self.use_azure_openai = False
 
     def query(
         self,
@@ -116,7 +128,6 @@ class ImprovedEnterpriseRAGEngine:
         start_time = time.time()
         req_id = str(uuid.uuid4())[:8]
 
-        # Step 1: Semantic Caching Check
         cache_key = f"{user_query.strip().lower()}_{user_department}_{requested_version}"
         if not bypass_cache and cache_key in self.semantic_cache:
             res = dict(self.semantic_cache[cache_key])
@@ -167,7 +178,7 @@ class ImprovedEnterpriseRAGEngine:
                 "engine": "Improved Enterprise RAG (Ambiguity Handled)"
             }
 
-        # Step 4: Scenario 2 Solver - Multi-Query Decomposition for complex comparison questions
+        # Step 4: Scenario 2 Solver - Multi-Query Decomposition
         sub_queries = self._decompose_query(rewritten_query)
 
         # Step 5: Execute Hybrid Search + Entra ID Security Filtering (Scenario 3 & RBAC)
@@ -186,10 +197,10 @@ class ImprovedEnterpriseRAGEngine:
                 query_vector=sq_vec,
                 top_k=config.IMPROVED_TOP_K,
                 filters=search_filters,
-                use_hybrid=True,       # Hybrid Vector + BM25
-                use_reranker=True,     # Semantic Reranking
-                use_parent_content=True, # Scenario 1 Parent-Child chunking solver
-                include_superseded=False # Filters out superseded 2024 policy
+                use_hybrid=True,
+                use_reranker=True,
+                use_parent_content=True,
+                include_superseded=False
             )
             for c in chunks:
                 if c["chunk_id"] not in seen_chunk_ids:
@@ -244,10 +255,15 @@ class ImprovedEnterpriseRAGEngine:
                 "engine": "Improved Enterprise RAG (Guardrail Intervened)"
             }
 
-        # Step 7: Context Assembly, Grounded Generation & Citation Verification
+        # Step 7: Native Azure OpenAI GPT-4o Chat Completion or Grounded Generation
         llm_start = time.time()
         context_str = self._build_grounded_context(top_chunks)
-        answer, citations = self._generate_grounded_answer(rewritten_query, top_chunks, context_str)
+        
+        if self.use_azure_openai:
+            answer, citations = self._generate_azure_openai_answer(rewritten_query, top_chunks, context_str)
+        else:
+            answer, citations = self._generate_grounded_answer(rewritten_query, top_chunks, context_str)
+            
         llm_latency = (time.time() - llm_start) * 1000
 
         groundedness = self._calc_groundedness(answer, context_str)
@@ -258,7 +274,6 @@ class ImprovedEnterpriseRAGEngine:
         tokens = in_tokens + out_tokens
         est_cost = (in_tokens * (config.COST_PER_1K_INPUT_TOKENS / 1000.0)) + (out_tokens * (config.COST_PER_1K_OUTPUT_TOKENS / 1000.0))
 
-        # Log trace to App Insights
         telemetry.log_request(
             request_id=req_id,
             user_query=user_query,
@@ -296,14 +311,42 @@ class ImprovedEnterpriseRAGEngine:
         self.semantic_cache[cache_key] = result
         return result
 
+    def _generate_azure_openai_answer(self, query: str, chunks: List[Dict[str, Any]], context: str) -> tuple[str, List[str]]:
+        """
+        Natively executes Azure OpenAI Chat Completion using gpt-4o.
+        """
+        system_prompt = (
+            "You are an Enterprise Knowledge Assistant. Answer the user's question accurately using ONLY the provided context.\n"
+            "Strict rules:\n"
+            "1. Base your answer strictly on facts present in the context.\n"
+            "2. Always cite document names and headers for every claim.\n"
+            "3. If context contains superseded policies, prioritize active policies (e.g. Leave Policy 2026 over 2024).\n"
+            "4. Do not extrapolate or hallucinate."
+        )
+
+        user_prompt = f"Context:\n{context}\n\nQuestion: {query}"
+
+        try:
+            response = self.openai_client.chat.completions.create(
+                model=config.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.0
+            )
+            answer_text = response.choices[0].message.content
+            citations = list(set([f"{c['doc_name']} (Section: {c['header']})" for c in chunks]))
+            return answer_text, citations
+        except Exception as e:
+            print(f"[Warning] Azure OpenAI call failed: {e}. Falling back to grounded synthesis.")
+            return self._generate_grounded_answer(query, chunks, context)
+
     def _rewrite_query_with_context(self, query: str, history: Optional[List[Dict[str, str]]]) -> str:
-        """Scenario 6 Solver: Rewrites ambiguous follow-up questions using chat history."""
         if not history:
             return query
-        
         last_turn = history[-1]
         last_user = last_turn.get("user", "")
-
         q_lower = query.lower().strip()
         
         if "what about" in q_lower or "how about" in q_lower:
@@ -318,7 +361,6 @@ class ImprovedEnterpriseRAGEngine:
         return query
 
     def _detect_ambiguity(self, query: str) -> tuple[bool, str]:
-        """Scenario 5 Solver: Detects vague queries like 'What is the limit?'."""
         q_clean = query.lower().strip().replace("?", "")
         ambiguous_terms = ["what is the limit", "what are the limits", "tell me the limit", "what is the policy"]
         if q_clean in ambiguous_terms:
@@ -326,7 +368,6 @@ class ImprovedEnterpriseRAGEngine:
         return False, ""
 
     def _generate_clarification(self, query: str, ambiguity_type: str) -> str:
-        """Scenario 5 Solver: Asks targeted clarification question."""
         if ambiguity_type == "limit":
             return (
                 "Our enterprise documentation contains several different operational limits. "
@@ -340,7 +381,6 @@ class ImprovedEnterpriseRAGEngine:
         return "Could you please clarify your request with more specific context?"
 
     def _decompose_query(self, query: str) -> List[str]:
-        """Scenario 2 Solver: Breaks comparison queries into sub-queries."""
         q_lower = query.lower()
         if "compare" in q_lower and "and" in q_lower:
             m = re.search(r'compare\s+(.*?)\s+for\s+(.*?)\s+and\s+(.*)', q_lower)
@@ -354,7 +394,6 @@ class ImprovedEnterpriseRAGEngine:
         return [query]
 
     def _evaluate_evidence(self, query: str, chunks: List[Dict[str, Any]]) -> float:
-        """Scenario 4 Solver: Evaluates retrieval relevance score to prevent hallucination."""
         if not chunks:
             return 0.0
         
@@ -364,7 +403,6 @@ class ImprovedEnterpriseRAGEngine:
             "tell", "show", "much", "with", "from", "about", "have", "has", "can", "will"
         }
         q_words = [w.lower() for w in re.findall(r'\w+', query) if len(w) > 2 and w.lower() not in stopwords]
-
         
         if not q_words:
             return 0.8
@@ -381,7 +419,6 @@ class ImprovedEnterpriseRAGEngine:
         combined_score = 0.85 * max_overlap + 0.15 * min(top_rerank_score * 30.0, 1.0)
         return min(combined_score, 1.0)
 
-
     def _build_grounded_context(self, chunks: List[Dict[str, Any]]) -> str:
         ctx_parts = []
         for i, c in enumerate(chunks, 1):
@@ -396,10 +433,8 @@ class ImprovedEnterpriseRAGEngine:
     ) -> tuple[str, List[str]]:
         citations = []
         answer_parts = []
-
         q_lower = query.lower()
 
-        # Version Policy Conflict Resolution (Scenario 3)
         if "leave" in q_lower or "sick" in q_lower or "carry" in q_lower:
             latest_chunk = next((c for c in chunks if c["version"] == "2026"), chunks[0])
             citations.append(f"{latest_chunk['doc_name']} (Section: {latest_chunk['header']})")
@@ -425,7 +460,6 @@ class ImprovedEnterpriseRAGEngine:
                     f"Under the **Leave Policy 2026**, {latest_chunk['content']}"
                 )
 
-        # Multi-Section Comparison Resolution (Scenario 2)
         elif "refund" in q_lower and ("enterprise" in q_lower or "standard" in q_lower or "compare" in q_lower):
             ent_chunk = next((c for c in chunks if "Enterprise" in c["doc_name"]), None)
             std_chunk = next((c for c in chunks if "Standard" in c["doc_name"]), None)
@@ -439,13 +473,11 @@ class ImprovedEnterpriseRAGEngine:
             answer_parts.append("- **Enterprise Tier:** Eligible for a **100% full refund within 60 days** if SLA (99.99%) is breached. Cancellations require a 30-day notice with pro-rata unused balance refund. Refunds processed in 3 business days via wire transfer.")
             answer_parts.append("- **Standard Tier:** Eligible for a **full refund within 14 days** of activation. Non-refundable after 14 days. Subscriptions are billed monthly and cancelled at cycle end. Refunds processed in 10 business days.")
 
-        # System Limits Specs (Scenario 5 resolved context)
         elif "limit" in q_lower or "rate" in q_lower or "upload" in q_lower:
             lim_chunk = chunks[0]
             citations.append(f"{lim_chunk['doc_name']} (Section: {lim_chunk['header']})")
             answer_parts.append(f"Based on the **System Limits Specification**: {lim_chunk['content']}")
 
-        # Standard Policy Answer Generation
         else:
             top_c = chunks[0]
             citations.append(f"{top_c['doc_name']} (Section: {top_c['header']})")

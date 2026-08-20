@@ -1,178 +1,658 @@
 {
   "summary": {
-    "baseline_hit_rate": 0.375,
-    "improved_hit_rate": 1.0,
+    "baseline_hit_rate": 0.5312,
+    "improved_hit_rate": 0.9375,
     "baseline_groundedness": 1.0,
-    "improved_groundedness": 0.6837,
-    "baseline_citation_acc": 0.5,
-    "improved_citation_acc": 1.0,
+    "improved_groundedness": 0.6019,
+    "baseline_citation_acc": 0.6562,
+    "improved_citation_acc": 0.9062,
     "baseline_hallucination_rate": 0.125,
     "improved_hallucination_rate": 0.0,
-    "baseline_avg_latency_ms": 1.14,
-    "improved_avg_latency_ms": 1.43
+    "baseline_avg_latency_ms": 27.4,
+    "improved_avg_latency_ms": 28.02
   },
   "baseline_details": [
     {
-      "id": "Q1_STRAIGHTFORWARD",
+      "id": "Q01_STRAIGHTFORWARD_TRAVEL",
       "scenario": "Straightforward",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 1.18,
-      "tokens": 149
+      "latency_ms": 32.54,
+      "tokens": 123
     },
     {
-      "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+      "id": "Q02_STRAIGHTFORWARD_INTL_TRAVEL",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 43.47,
+      "tokens": 127
+    },
+    {
+      "id": "Q03_STRAIGHTFORWARD_RECEIPT_LIMIT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 28.29,
+      "tokens": 133
+    },
+    {
+      "id": "Q04_STRAIGHTFORWARD_FLIGHT_CLASS",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 19.32,
+      "tokens": 136
+    },
+    {
+      "id": "Q05_WRONG_CHUNK_SCENARIO_1_SICK",
       "scenario": "Scenario 1: Correct Document, Wrong Chunk",
       "hit_rate": 0.0,
       "groundedness": 1.0,
       "citation_acc": 0.0,
       "hallucination": 0.0,
-      "latency_ms": 2.44,
-      "tokens": 147
+      "latency_ms": 24.84,
+      "tokens": 107
     },
     {
-      "id": "Q3_MULTI_DOC_SCENARIO_2",
+      "id": "Q06_WRONG_CHUNK_PARENTAL",
+      "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 23.11,
+      "tokens": 111
+    },
+    {
+      "id": "Q07_MULTI_DOC_SCENARIO_2_REFUND",
       "scenario": "Scenario 2: Information Across Multiple Sections",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 1.02,
-      "tokens": 103
+      "latency_ms": 42.33,
+      "tokens": 118
     },
     {
-      "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+      "id": "Q08_MULTI_DOC_CANCELLATION",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 49.47,
+      "tokens": 144
+    },
+    {
+      "id": "Q09_MULTI_DOC_PROCESSING_TIME",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 32.35,
+      "tokens": 130
+    },
+    {
+      "id": "Q10_VERSION_CONFLICT_SCENARIO_3_ANNUAL",
       "scenario": "Scenario 3: Similar Documents / Version Conflict",
       "hit_rate": 0.0,
       "groundedness": 1.0,
       "citation_acc": 0.0,
       "hallucination": 0.0,
-      "latency_ms": 0.61,
-      "tokens": 146
+      "latency_ms": 34.48,
+      "tokens": 157
     },
     {
-      "id": "Q5_HALLUCINATION_SCENARIO_4",
+      "id": "Q11_VERSION_CONFLICT_CARRY_DAYS",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 27.6,
+      "tokens": 163
+    },
+    {
+      "id": "Q12_VERSION_CONFLICT_EMERGENCY",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 27.36,
+      "tokens": 123
+    },
+    {
+      "id": "Q13_HALLUCINATION_PET_INSURANCE",
       "scenario": "Scenario 4: Hallucination / Missing Information",
       "hit_rate": 0.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 1.0,
-      "latency_ms": 0.61,
-      "tokens": 99
+      "latency_ms": 35.98,
+      "tokens": 175
     },
     {
-      "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+      "id": "Q14_HALLUCINATION_GYM_MEMBERSHIP",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 1.0,
+      "latency_ms": 36.54,
+      "tokens": 102
+    },
+    {
+      "id": "Q15_HALLUCINATION_STOCK_OPTIONS",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 1.0,
+      "latency_ms": 28.59,
+      "tokens": 86
+    },
+    {
+      "id": "Q16_AMBIGUOUS_QUERY_LIMIT",
+      "scenario": "Scenario 5: Ambiguous Query",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.08,
+      "tokens": 94
+    },
+    {
+      "id": "Q17_AMBIGUOUS_QUERY_POLICY",
       "scenario": "Scenario 5: Ambiguous Query",
       "hit_rate": 0.0,
       "groundedness": 1.0,
       "citation_acc": 0.0,
       "hallucination": 0.0,
-      "latency_ms": 0.53,
-      "tokens": 130
+      "latency_ms": 23.65,
+      "tokens": 100
     },
     {
-      "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+      "id": "Q18_CONVERSATIONAL_STANDARD_REFUND",
       "scenario": "Scenario 6: Conversational Context",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 0.79,
-      "tokens": 86
+      "latency_ms": 23.93,
+      "tokens": 148
     },
     {
-      "id": "Q8_RBAC_ACCESS_CONTROL",
+      "id": "Q19_CONVERSATIONAL_EXCEPTIONS",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 21.24,
+      "tokens": 154
+    },
+    {
+      "id": "Q20_RBAC_ENGINEERING_PAYROLL",
       "scenario": "Bonus: Access Control Isolation",
       "hit_rate": 0.0,
       "groundedness": 1.0,
       "citation_acc": 0.0,
       "hallucination": 0.0,
-      "latency_ms": 1.96,
-      "tokens": 96
-    }
-  ],
-  "improved_details": [
+      "latency_ms": 24.41,
+      "tokens": 120
+    },
     {
-      "id": "Q1_STRAIGHTFORWARD",
+      "id": "Q21_RBAC_FINANCE_ACCESS",
+      "scenario": "Bonus: Access Control Isolation",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.35,
+      "tokens": 114
+    },
+    {
+      "id": "Q22_SYSTEM_API_RATE_LIMIT",
       "scenario": "Straightforward",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 3.35,
-      "tokens": 306
+      "latency_ms": 23.05,
+      "tokens": 115
     },
     {
-      "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+      "id": "Q23_SYSTEM_UPLOAD_LIMIT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 21.39,
+      "tokens": 141
+    },
+    {
+      "id": "Q24_SYSTEM_DB_TIMEOUT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 23.96,
+      "tokens": 122
+    },
+    {
+      "id": "Q25_SECURITY_ENCRYPTION_STANDARD",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 24.56,
+      "tokens": 213
+    },
+    {
+      "id": "Q26_SECURITY_CROSS_DEPT_RULE",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.52,
+      "tokens": 225
+    },
+    {
+      "id": "Q27_PROFESSIONAL_SERVICES_REFUND",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 17.85,
+      "tokens": 134
+    },
+    {
+      "id": "Q28_STANDARD_ADDON_REFUND",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 22.72,
+      "tokens": 128
+    },
+    {
+      "id": "Q29_LEAVE_ACCRUAL_RATE_2026",
+      "scenario": "Straightforward",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.66,
+      "tokens": 87
+    },
+    {
+      "id": "Q30_SICK_LEAVE_DOCTOR_NOTE",
+      "scenario": "Straightforward",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 27.32,
+      "tokens": 90
+    },
+    {
+      "id": "Q31_HALLUCINATION_MATERNITY_BONUS",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 1.0,
+      "latency_ms": 41.18,
+      "tokens": 100
+    },
+    {
+      "id": "Q32_CONVERSATIONAL_STANDARD_LIMIT",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 21.69,
+      "tokens": 148
+    }
+  ],
+  "improved_details": [
+    {
+      "id": "Q01_STRAIGHTFORWARD_TRAVEL",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 62.54,
+      "tokens": 293
+    },
+    {
+      "id": "Q02_STRAIGHTFORWARD_INTL_TRAVEL",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 30.55,
+      "tokens": 288
+    },
+    {
+      "id": "Q03_STRAIGHTFORWARD_RECEIPT_LIMIT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 27.52,
+      "tokens": 296
+    },
+    {
+      "id": "Q04_STRAIGHTFORWARD_FLIGHT_CLASS",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 19.36,
+      "tokens": 292
+    },
+    {
+      "id": "Q05_WRONG_CHUNK_SCENARIO_1_SICK",
       "scenario": "Scenario 1: Correct Document, Wrong Chunk",
       "hit_rate": 1.0,
       "groundedness": 0.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 1.96,
+      "latency_ms": 29.27,
       "tokens": 56
     },
     {
-      "id": "Q3_MULTI_DOC_SCENARIO_2",
+      "id": "Q06_WRONG_CHUNK_PARENTAL",
+      "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 32.04,
+      "tokens": 49
+    },
+    {
+      "id": "Q07_MULTI_DOC_SCENARIO_2_REFUND",
       "scenario": "Scenario 2: Information Across Multiple Sections",
       "hit_rate": 1.0,
-      "groundedness": 0.57,
+      "groundedness": 0.64,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 2.8,
-      "tokens": 316
+      "latency_ms": 106.89,
+      "tokens": 322
     },
     {
-      "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+      "id": "Q08_MULTI_DOC_CANCELLATION",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 33.6,
+      "tokens": 301
+    },
+    {
+      "id": "Q09_MULTI_DOC_PROCESSING_TIME",
+      "scenario": "Scenario 2: Information Across Multiple Sections",
+      "hit_rate": 1.0,
+      "groundedness": 0.7,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 31.93,
+      "tokens": 320
+    },
+    {
+      "id": "Q10_VERSION_CONFLICT_SCENARIO_3_ANNUAL",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 0.0,
+      "groundedness": 0.52,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 33.45,
+      "tokens": 323
+    },
+    {
+      "id": "Q11_VERSION_CONFLICT_CARRY_DAYS",
       "scenario": "Scenario 3: Similar Documents / Version Conflict",
       "hit_rate": 1.0,
-      "groundedness": 0.9,
+      "groundedness": 0.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 0.84,
-      "tokens": 307
+      "latency_ms": 33.82,
+      "tokens": 49
     },
     {
-      "id": "Q5_HALLUCINATION_SCENARIO_4",
+      "id": "Q12_VERSION_CONFLICT_EMERGENCY",
+      "scenario": "Scenario 3: Similar Documents / Version Conflict",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 34.32,
+      "tokens": 49
+    },
+    {
+      "id": "Q13_HALLUCINATION_PET_INSURANCE",
       "scenario": "Scenario 4: Hallucination / Missing Information",
       "hit_rate": 1.0,
       "groundedness": 0.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 0.6,
+      "latency_ms": 43.62,
       "tokens": 47
     },
     {
-      "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+      "id": "Q14_HALLUCINATION_GYM_MEMBERSHIP",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 23.42,
+      "tokens": 47
+    },
+    {
+      "id": "Q15_HALLUCINATION_STOCK_OPTIONS",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.69,
+      "tokens": 47
+    },
+    {
+      "id": "Q16_AMBIGUOUS_QUERY_LIMIT",
       "scenario": "Scenario 5: Ambiguous Query",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 0.01,
+      "latency_ms": 0.02,
       "tokens": 45
     },
     {
-      "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+      "id": "Q17_AMBIGUOUS_QUERY_POLICY",
+      "scenario": "Scenario 5: Ambiguous Query",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 0.05,
+      "tokens": 45
+    },
+    {
+      "id": "Q18_CONVERSATIONAL_STANDARD_REFUND",
       "scenario": "Scenario 6: Conversational Context",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 1.1,
-      "tokens": 291
+      "latency_ms": 27.55,
+      "tokens": 304
     },
     {
-      "id": "Q8_RBAC_ACCESS_CONTROL",
+      "id": "Q19_CONVERSATIONAL_EXCEPTIONS",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 1.0,
+      "groundedness": 0.76,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 23.38,
+      "tokens": 336
+    },
+    {
+      "id": "Q20_RBAC_ENGINEERING_PAYROLL",
+      "scenario": "Bonus: Access Control Isolation",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 21.16,
+      "tokens": 50
+    },
+    {
+      "id": "Q21_RBAC_FINANCE_ACCESS",
       "scenario": "Bonus: Access Control Isolation",
       "hit_rate": 1.0,
       "groundedness": 1.0,
       "citation_acc": 1.0,
       "hallucination": 0.0,
-      "latency_ms": 0.8,
-      "tokens": 397
+      "latency_ms": 19.12,
+      "tokens": 291
+    },
+    {
+      "id": "Q22_SYSTEM_API_RATE_LIMIT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 24.51,
+      "tokens": 305
+    },
+    {
+      "id": "Q23_SYSTEM_UPLOAD_LIMIT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 20.43,
+      "tokens": 310
+    },
+    {
+      "id": "Q24_SYSTEM_DB_TIMEOUT",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 25.04,
+      "tokens": 297
+    },
+    {
+      "id": "Q25_SECURITY_ENCRYPTION_STANDARD",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 18.9,
+      "tokens": 342
+    },
+    {
+      "id": "Q26_SECURITY_CROSS_DEPT_RULE",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 21.7,
+      "tokens": 354
+    },
+    {
+      "id": "Q27_PROFESSIONAL_SERVICES_REFUND",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 1.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 27.69,
+      "tokens": 303
+    },
+    {
+      "id": "Q28_STANDARD_ADDON_REFUND",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 0.64,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 19.12,
+      "tokens": 338
+    },
+    {
+      "id": "Q29_LEAVE_ACCRUAL_RATE_2026",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 19.29,
+      "tokens": 47
+    },
+    {
+      "id": "Q30_SICK_LEAVE_DOCTOR_NOTE",
+      "scenario": "Straightforward",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 22.04,
+      "tokens": 47
+    },
+    {
+      "id": "Q31_HALLUCINATION_MATERNITY_BONUS",
+      "scenario": "Scenario 4: Hallucination / Missing Information",
+      "hit_rate": 1.0,
+      "groundedness": 0.0,
+      "citation_acc": 1.0,
+      "hallucination": 0.0,
+      "latency_ms": 25.61,
+      "tokens": 48
+    },
+    {
+      "id": "Q32_CONVERSATIONAL_STANDARD_LIMIT",
+      "scenario": "Scenario 6: Conversational Context",
+      "hit_rate": 0.0,
+      "groundedness": 1.0,
+      "citation_acc": 0.0,
+      "hallucination": 0.0,
+      "latency_ms": 20.13,
+      "tokens": 303
     }
   ]
 }

@@ -5,7 +5,7 @@ from src.chunking import Chunk
 
 class HybridSearchEngine:
     """
-    Hybrid Search Engine featuring native Azure AI Search SDK integration
+    Hybrid Search Engine featuring native Azure AI Search SDK execution (SearchClient.search)
     with embedded local Hybrid Search (Vector + BM25 + RRF + OData Metadata Filtering + Semantic Reranker) fallback.
     """
     def __init__(self):
@@ -19,26 +19,12 @@ class HybridSearchEngine:
                 from azure.core.credentials import AzureKeyCredential
                 from azure.search.documents import SearchClient
                 from azure.search.documents.indexes import SearchIndexClient
-                from azure.search.documents.indexes.models import (
-                    SearchIndex,
-                    SearchField,
-                    SearchFieldDataType,
-                    SimpleField,
-                    SearchableField,
-                    VectorSearch,
-                    HnswAlgorithmConfiguration,
-                    VectorSearchProfile,
-                    SemanticConfiguration,
-                    SemanticPrioritizedFields,
-                    SemanticField,
-                    SemanticSearch
-                )
 
                 self.credential = AzureKeyCredential(config.AZURE_SEARCH_KEY)
                 self.index_client = SearchIndexClient(endpoint=config.AZURE_SEARCH_ENDPOINT, credential=self.credential)
                 self.azure_client = SearchClient(endpoint=config.AZURE_SEARCH_ENDPOINT, index_name=config.AZURE_SEARCH_INDEX, credential=self.credential)
             except Exception as e:
-                print(f"[Warning] Azure AI Search SDK initialization failed ({e}). Falling back to local hybrid index.")
+                print(f"[Warning] Azure AI Search SDK initialization skipped ({e}). Using local hybrid index.")
                 self.use_azure = False
 
     def create_azure_index_schema(self):
@@ -116,7 +102,20 @@ class HybridSearchEngine:
         self.chunks = chunks
         self.vectors = [np.array(v, dtype=np.float32) for v in vectors]
         
-        # Local BM25 index fallback
+        # Upload documents to Azure AI Search if Azure is enabled
+        if self.use_azure:
+            try:
+                documents = []
+                for c, v in zip(chunks, vectors):
+                    doc = c.to_dict()
+                    doc["content_vector"] = v
+                    documents.append(doc)
+                self.azure_client.upload_documents(documents)
+                print(f"✅ Uploaded {len(documents)} document chunks to Azure AI Search Index.")
+            except Exception as e:
+                print(f"[Warning] Azure AI Search upload failed: {e}")
+
+        # Build local BM25 index fallback
         try:
             from rank_bm25 import BM25Okapi
             corpus = [c.content.lower().split() for c in chunks]
@@ -139,19 +138,70 @@ class HybridSearchEngine:
         Executes hybrid search (Vector + BM25), Entra ID RBAC security filtering, 
         version/status filtering, and semantic reranking with @search.score extraction.
         """
+        # Execute genuine Azure AI Search SDK call if cloud credentials are valid
+        if self.use_azure:
+            try:
+                from azure.search.documents.models import VectorizedQuery, QueryType
+
+                filter_parts = []
+                if not include_superseded:
+                    filter_parts.append("status eq 'ACTIVE'")
+                if filters and "department" in filters and filters["department"] and filters["department"] != "All":
+                    filter_parts.append(f"(department eq '{filters['department']}' or department eq 'All')")
+                if filters and "version" in filters and filters["version"]:
+                    filter_parts.append(f"version eq '{filters['version']}'")
+
+                filter_expr = " and ".join(filter_parts) if filter_parts else None
+
+                vector_query = VectorizedQuery(
+                    vector=query_vector,
+                    k_nearest_neighbors=top_k,
+                    fields="content_vector"
+                )
+
+                azure_results = self.azure_client.search(
+                    search_text=query if use_hybrid else None,
+                    vector_queries=[vector_query] if query_vector else None,
+                    filter=filter_expr,
+                    query_type=QueryType.SEMANTIC if use_reranker else QueryType.SIMPLE,
+                    semantic_configuration_name=config.AZURE_SEARCH_SEMANTIC_CONFIG if use_reranker else None,
+                    top=top_k
+                )
+
+                results = []
+                for doc in azure_results:
+                    results.append({
+                        "chunk_id": doc["chunk_id"],
+                        "doc_id": doc["doc_id"],
+                        "doc_name": doc["doc_name"],
+                        "header": doc["header"],
+                        "content": doc["content"],
+                        "raw_content": doc["content"],
+                        "effective_date": doc["effective_date"],
+                        "version": doc["version"],
+                        "status": doc["status"],
+                        "department": doc["department"],
+                        "tier": doc["tier"],
+                        "@search.score": round(float(doc.get("@search.score", 0.0)), 4),
+                        "@search.reranker_score": round(float(doc.get("@search.reranker_score", 0.0)), 4),
+                        "score": round(float(doc.get("@search.reranker_score", doc.get("@search.score", 0.0))), 4),
+                        "chunk_index": doc.get("chunk_index", 0)
+                    })
+                return results
+            except Exception as e:
+                print(f"[Warning] Azure AI Search call failed ({e}). Falling back to local hybrid index.")
+
+        # Local Hybrid Vector + BM25 + RRF fallback execution
         if not self.chunks:
             return []
 
         filtered_indices = []
         for i, c in enumerate(self.chunks):
             match = True
-            
-            # Document Versioning & Status Filtering
             if not include_superseded and c.status == "SUPERSEDED":
                 match = False
 
             if filters:
-                # Entra ID RBAC Access Control Scoping
                 if "department" in filters and filters["department"] and filters["department"] != "All":
                     user_dept = filters["department"]
                     c_dept = c.department
@@ -172,7 +222,6 @@ class HybridSearchEngine:
         if not filtered_indices:
             return []
 
-        # Vector scores calculation
         q_vec = np.array(query_vector, dtype=np.float32)
         vec_norm = np.linalg.norm(q_vec) + 1e-9
         
@@ -186,7 +235,6 @@ class HybridSearchEngine:
         vector_scores.sort(key=lambda x: x[1], reverse=True)
         vector_rank = {idx: rank + 1 for rank, (idx, _) in enumerate(vector_scores)}
 
-        # BM25 scores calculation
         bm25_rank = {}
         if use_hybrid and self.bm25:
             q_tokens = query.lower().split()
@@ -195,7 +243,6 @@ class HybridSearchEngine:
             bm25_filtered.sort(key=lambda x: x[1], reverse=True)
             bm25_rank = {idx: rank + 1 for rank, (idx, _) in enumerate(bm25_filtered)}
 
-        # Reciprocal Rank Fusion (RRF) calculation
         rrf_scores = []
         k = 60.0
         for i in filtered_indices:
@@ -207,19 +254,17 @@ class HybridSearchEngine:
             else:
                 rrf_score = 1.0 / (k + r_vec)
 
-            # Apply temporal decay boost for latest active version
             chunk = self.chunks[i]
             if chunk.version == "2026":
                 rrf_score *= 1.25
             elif chunk.version == "2024":
-                rrf_score *= 0.70 # Demote superseded policy
+                rrf_score *= 0.70
 
             rrf_scores.append((i, rrf_score))
 
         rrf_scores.sort(key=lambda x: x[1], reverse=True)
         top_candidates = rrf_scores[:top_k * 2]
 
-        # Semantic Reranker simulation & Score extraction
         results = []
         for idx, score in top_candidates:
             chunk = self.chunks[idx]
