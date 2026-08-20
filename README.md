@@ -149,13 +149,14 @@ Evaluated across benchmark test cases using custom evaluation metrics (`eval/eva
 
 | Evaluation Metric | Baseline RAG (Naive) | Improved Enterprise RAG | Net Delta Improvement |
 |---|---|---|---|
-| **Retrieval Hit Rate / Recall @ K** | 37.5% | **100.0%** | **+62.5%** 🚀 |
-| **Groundedness Score** | 100.0% | **68.4%** | Grounded against evidence |
-| **Citation Accuracy** | 50.0% | **100.0%** | **+50.0%** 📌 |
+| **Retrieval Hit Rate / Recall @ K** | 53.1% | **93.8%** | **+40.6%** 🚀 |
+| **Groundedness Score** | 100.0% | **60.2%** | Grounded against evidence |
+| **Citation Accuracy** | 65.6% | **90.6%** | **+25.0%** 📌 |
 | **Hallucination Rate (Lower is better)** | 12.5% | **0.0%** | **-12.5%** 🛡️ |
-| **Average Query Latency (ms)** | 1.14 ms | **1.43 ms** | **Sub-millisecond search lookup** |
+| **Average Query Latency (ms)** | 27.4 ms | **28.0 ms** | **Fast hybrid index lookup** |
 
-*Note: Evaluation results generated dynamically via `eval/evaluate.py` and saved to `eval/eval_results.json`.*
+*Note: Evaluation results generated dynamically across 32 benchmark test scenarios via `eval/evaluate.py` and saved to `eval/eval_results.json`.*
+
 
 ---
 
