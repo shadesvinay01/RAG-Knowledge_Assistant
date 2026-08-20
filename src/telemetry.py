@@ -1,15 +1,30 @@
+import os
 import time
 import json
 from typing import List, Dict, Any, Optional
+from src.config import config
 
 class TelemetryLogger:
     """
-    Production Telemetry Logger simulating Azure Application Insights distributed tracing.
-    Records request spans, retrieval scores (@search.score, @search.reranker_score),
+    Production Telemetry Logger featuring Azure Application Insights OpenTelemetry SDK integration.
+    Exports request traces, search scores (@search.score, @search.reranker_score),
     stage latency, token usage, cost estimation, and groundedness guardrails.
     """
     def __init__(self):
         self.traces: List[Dict[str, Any]] = []
+        self.use_app_insights = bool(config.APPLICATIONINSIGHTS_CONNECTION_STRING)
+        self.tracer = None
+
+        if self.use_app_insights:
+            try:
+                from azure.monitor.opentelemetry import configure_azure_monitor
+                from opentelemetry import trace
+                configure_azure_monitor(connection_string=config.APPLICATIONINSIGHTS_CONNECTION_STRING)
+                self.tracer = trace.get_tracer("enterprise-rag-tracer")
+                print("✅ Azure Application Insights OpenTelemetry Exporter initialized.")
+            except Exception as e:
+                print(f"[Warning] Application Insights SDK initialization skipped ({e}). Storing local trace list.")
+                self.use_app_insights = False
 
     def log_request(
         self,
@@ -58,6 +73,20 @@ class TelemetryLogger:
             },
             "error": error
         }
+
+        # Export trace to Azure Application Insights if active
+        if self.use_app_insights and self.tracer:
+            try:
+                with self.tracer.start_as_current_span("rag_request_span") as span:
+                    span.set_attribute("request_id", request_id)
+                    span.set_attribute("user_query", user_query)
+                    span.set_attribute("engine", engine)
+                    span.set_attribute("total_latency_ms", total_latency_ms)
+                    span.set_attribute("estimated_cost_usd", estimated_cost_usd)
+                    span.set_attribute("groundedness_score", groundedness_score)
+            except Exception as e:
+                print(f"[Warning] Failed to export span to App Insights: {e}")
+
         self.traces.append(trace)
         return trace
 

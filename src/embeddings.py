@@ -4,8 +4,8 @@ from src.config import config
 
 class EmbeddingEngine:
     """
-    Embedding Engine supporting Azure OpenAI text-embedding-3-large
-    with local sentence-transformers fallback.
+    Embedding Engine supporting Azure OpenAI text-embedding-3-large with explicit 1536-dimension specification
+    and local sentence-transformers fallback.
     """
     def __init__(self):
         self.use_azure = bool(config.AZURE_OPENAI_KEY and "your-azure" not in config.AZURE_OPENAI_ENDPOINT)
@@ -35,9 +35,11 @@ class EmbeddingEngine:
 
         if self.use_azure:
             try:
+                # Explicitly request 1536 dimensions for text-embedding-3-large to match Azure AI Search schema
                 res = self.client.embeddings.create(
                     input=texts,
-                    model=config.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+                    model=config.AZURE_OPENAI_EMBEDDING_DEPLOYMENT,
+                    dimensions=1536
                 )
                 return [d.embedding for d in res.data]
             except Exception as e:
@@ -47,7 +49,7 @@ class EmbeddingEngine:
             embeddings = self.local_model.encode(texts, convert_to_numpy=True)
             return embeddings.tolist()
 
-        # Deterministic lightweight hash vectorizer fallback
+        # Deterministic lightweight hash vectorizer fallback (384 dimensions)
         return [self._hash_vector(t) for t in texts]
 
     def embed_query(self, text: str) -> List[float]:

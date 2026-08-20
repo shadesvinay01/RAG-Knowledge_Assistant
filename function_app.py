@@ -14,17 +14,18 @@ app = func.FunctionApp()
 def blob_ingestion_trigger(myblob: func.InputStream):
     """
     Azure Function Event Grid Blob Trigger:
-    Triggered automatically whenever a new enterprise document (PDF/MD) is uploaded to Azure Blob Storage.
-    Parses layout, extracts metadata, generates embeddings via Azure OpenAI, and updates Azure AI Search Index.
+    Triggered automatically whenever a new enterprise document (PDF/DOCX/MD) is uploaded to Azure Blob Storage.
+    Processes raw binary bytes via Azure Document Intelligence OCR, generates 1536-dim embeddings via Azure OpenAI,
+    and indexes document metadata into Azure AI Search.
     """
     logging.info(f"⚡ Azure Function Blob Trigger processing blob: {myblob.name} ({myblob.length} bytes)")
 
     try:
-        content = myblob.read().decode("utf-8")
+        blob_bytes = myblob.read() # Read raw binary bytes
         filename = myblob.name.split("/")[-1]
 
         ingestion_pipeline = DocumentIngestionPipeline()
-        chunks = ingestion_pipeline.parse_document(content, filename)
+        chunks = ingestion_pipeline.parse_blob_file(blob_bytes, filename)
         logging.info(f"   Generated {len(chunks)} chunks from {filename}.")
 
         embedding_engine = EmbeddingEngine()
