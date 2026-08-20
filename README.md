@@ -65,6 +65,8 @@ graph TD
     { "name": "doc_name", "type": "Edm.String", "searchable": true, "filterable": true },
     { "name": "header", "type": "Edm.String", "searchable": true, "filterable": true },
     { "name": "content", "type": "Edm.String", "searchable": true, "analyzer": "en.microsoft" },
+    { "name": "parent_content", "type": "Edm.String", "searchable": false },
+    { "name": "chunk_index", "type": "Edm.Int32", "filterable": true, "sortable": true },
     { "name": "effective_date", "type": "Edm.String", "filterable": true, "sortable": true },
     { "name": "version", "type": "Edm.String", "filterable": true },
     { "name": "status", "type": "Edm.String", "filterable": true },
@@ -99,6 +101,12 @@ graph TD
 
 ## 🛠️ Installation & Rapid Setup
 
+### Standalone Azure AI Search Index Setup Script
+To provision the Azure AI Search Index schema during deployment/setup (without waiting for a Blob trigger):
+```bash
+python setup_azure_search.py
+```
+
 ### Quickstart (Offline / Local Evaluation Mode)
 ```bash
 # 1. Clone Repository
@@ -128,6 +136,13 @@ AZURE_SEARCH_INDEX=enterprise-knowledge-index
 APPLICATIONINSIGHTS_CONNECTION_STRING=your_app_insights_connection_string
 ```
 
+### Azure App Service Web Hosting Deployment
+The included PowerShell script [deploy_azure.ps1](file:///c:/Users/DELL/Downloads/ass/deploy_azure.ps1) provisions the Azure App Service Web App hosting infrastructure for the Streamlit web interface:
+```powershell
+az login
+.\deploy_azure.ps1
+```
+
 ---
 
 ## 🧩 Step 3 — RAG Failure Scenario Solutions
@@ -150,17 +165,13 @@ Evaluated across 32 benchmark test cases using custom evaluation metrics (`eval/
 
 | Evaluation Metric | Baseline RAG (Naive) | Improved Enterprise RAG | Net Delta Improvement |
 |---|---|---|---|
-| **Retrieval Hit Rate / Recall @ K** | 53.1% | **75.0%** | **+21.9%** 🚀 |
+| **Retrieval Hit Rate @ K** | 53.1% | **75.0%** | **+21.9%** 🚀 |
 | **Groundedness Score** | 100.0% | **75.4%** | Grounded against evidence |
 | **Citation Accuracy** | 65.6% | **71.9%** | **+6.2%** 📌 |
 | **Hallucination Rate (Lower is better)** | 12.5% | **3.1%** | **-9.4%** 🛡️ |
 | **Average Query Latency (ms)** | 24.0 ms | **24.4 ms** | **Offline local hybrid lookup** |
 
 *Source of Truth: Metrics generated dynamically via `eval/evaluate.py` and stored in `eval/eval_results.json`.*
-
-
-
-
 
 ---
 

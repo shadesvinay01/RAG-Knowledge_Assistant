@@ -146,12 +146,13 @@ def run_evaluation(data_dir: str = "data/knowledge_base", dataset_path: str = "e
     avg_i_lat = sum(r["latency_ms"] for r in improved_results) / len(improved_results)
 
     summary_table = [
-        ["Retrieval Hit Rate / Recall @ K", f"{avg_b_hit * 100:.1f}%", f"{avg_i_hit * 100:.1f}%", f"+{(avg_i_hit - avg_b_hit)*100:.1f}%"],
+        ["Retrieval Hit Rate @ K", f"{avg_b_hit * 100:.1f}%", f"{avg_i_hit * 100:.1f}%", f"+{(avg_i_hit - avg_b_hit)*100:.1f}%"],
         ["Groundedness Score", f"{avg_b_ground * 100:.1f}%", f"{avg_i_ground * 100:.1f}%", f"+{(avg_i_ground - avg_b_ground)*100:.1f}%"],
         ["Citation Accuracy", f"{avg_b_cit * 100:.1f}%", f"{avg_i_cit * 100:.1f}%", f"+{(avg_i_cit - avg_b_cit)*100:.1f}%"],
         ["Hallucination Rate (Lower is better)", f"{avg_b_hall * 100:.1f}%", f"{avg_i_hall * 100:.1f}%", f"-{(avg_b_hall - avg_i_hall)*100:.1f}%"],
         ["Average Latency (ms)", f"{avg_b_lat:.1f} ms", f"{avg_i_lat:.1f} ms", f"{avg_i_lat - avg_b_lat:+.1f} ms"],
     ]
+
 
     print("\n" + "=" * 70)
     print("AGGREGATED BENCHMARK EVALUATION RESULTS")

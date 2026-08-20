@@ -1,4 +1,7 @@
 # Azure Resource Deployment & App Service Provisioning Script
+# Note: This script provisions the Azure App Service Web App hosting layer.
+# To provision the Azure AI Search index schema, execute: python setup_azure_search.py
+
 param (
     [string]$ResourceGroupName = "rg-enterprise-rag-prod",
     [string]$Location = "eastus",
@@ -18,4 +21,4 @@ az webapp create --resource-group $ResourceGroupName --plan $AppServicePlan --na
 Write-Host "⚙️ Setting Streamlit Startup Command..."
 az webapp config set --resource-group $ResourceGroupName --name $AppName --startup-file "python -m streamlit run app.py --server.port 8000 --server.address 0.0.0.0"
 
-Write-Host "✅ Azure Deployment Ready! Web App URL: https://$AppName.azurewebsites.net"
+Write-Host "✅ Azure App Service Web App Provisioned! URL: https://$AppName.azurewebsites.net"

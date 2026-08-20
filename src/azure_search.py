@@ -30,7 +30,7 @@ class HybridSearchEngine:
     def create_azure_index_schema(self):
         """
         Creates Azure AI Search Index with Vector HNSW Profile, BM25 Searchable fields,
-        OData Filterable metadata (department, version, status), and Semantic Ranker config.
+        OData Filterable metadata (department, version, status), parent_content, chunk_index, and Semantic Ranker config.
         """
         if not self.use_azure:
             return
@@ -57,6 +57,8 @@ class HybridSearchEngine:
                 SearchableField(name="doc_name", type=SearchFieldDataType.String, filterable=True),
                 SearchableField(name="header", type=SearchFieldDataType.String, filterable=True),
                 SearchableField(name="content", type=SearchFieldDataType.String, analyzer_name="en.microsoft"),
+                SimpleField(name="parent_content", type=SearchFieldDataType.String),
+                SimpleField(name="chunk_index", type=SearchFieldDataType.Int32, filterable=True, sortable=True),
                 SimpleField(name="effective_date", type=SearchFieldDataType.String, filterable=True, sortable=True),
                 SimpleField(name="version", type=SearchFieldDataType.String, filterable=True),
                 SimpleField(name="status", type=SearchFieldDataType.String, filterable=True),
@@ -102,7 +104,6 @@ class HybridSearchEngine:
         self.chunks = chunks
         self.vectors = [np.array(v, dtype=np.float32) for v in vectors]
         
-        # Upload documents to Azure AI Search if Azure is enabled
         if self.use_azure:
             try:
                 documents = []
@@ -115,7 +116,6 @@ class HybridSearchEngine:
             except Exception as e:
                 print(f"[Warning] Azure AI Search upload failed: {e}")
 
-        # Build local BM25 index fallback
         try:
             from rank_bm25 import BM25Okapi
             corpus = [c.content.lower().split() for c in chunks]
@@ -138,7 +138,6 @@ class HybridSearchEngine:
         Executes hybrid search (Vector + BM25), Entra ID RBAC security filtering, 
         version/status filtering, and semantic reranking with @search.score extraction.
         """
-        # Execute genuine Azure AI Search SDK call if cloud credentials are valid
         if self.use_azure:
             try:
                 from azure.search.documents.models import VectorizedQuery, QueryType
@@ -170,13 +169,16 @@ class HybridSearchEngine:
 
                 results = []
                 for doc in azure_results:
+                    final_content = doc.get("parent_content") if use_parent_content and doc.get("parent_content") else doc["content"]
                     results.append({
                         "chunk_id": doc["chunk_id"],
                         "doc_id": doc["doc_id"],
                         "doc_name": doc["doc_name"],
                         "header": doc["header"],
-                        "content": doc["content"],
+                        "content": final_content,
                         "raw_content": doc["content"],
+                        "parent_content": doc.get("parent_content", ""),
+                        "chunk_index": doc.get("chunk_index", 0),
                         "effective_date": doc["effective_date"],
                         "version": doc["version"],
                         "status": doc["status"],
@@ -184,8 +186,7 @@ class HybridSearchEngine:
                         "tier": doc["tier"],
                         "@search.score": round(float(doc.get("@search.score", 0.0)), 4),
                         "@search.reranker_score": round(float(doc.get("@search.reranker_score", 0.0)), 4),
-                        "score": round(float(doc.get("@search.reranker_score", doc.get("@search.score", 0.0))), 4),
-                        "chunk_index": doc.get("chunk_index", 0)
+                        "score": round(float(doc.get("@search.reranker_score", doc.get("@search.score", 0.0))), 4)
                     })
                 return results
             except Exception as e:
@@ -284,6 +285,8 @@ class HybridSearchEngine:
                 "header": chunk.header,
                 "content": final_content,
                 "raw_content": chunk.content,
+                "parent_content": chunk.parent_content,
+                "chunk_index": chunk.chunk_index,
                 "effective_date": chunk.effective_date,
                 "version": chunk.version,
                 "status": chunk.status,
@@ -291,8 +294,7 @@ class HybridSearchEngine:
                 "tier": chunk.tier,
                 "@search.score": round(float(raw_search_score), 4),
                 "@search.reranker_score": round(float(rerank_score), 4),
-                "score": round(float(rerank_score), 4),
-                "chunk_index": chunk.chunk_index
+                "score": round(float(rerank_score), 4)
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)

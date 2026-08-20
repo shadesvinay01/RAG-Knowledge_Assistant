@@ -260,17 +260,18 @@ with tab_eval:
         s = eval_data["summary"]
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Retrieval Hit Rate", f"{s['improved_hit_rate']*100:.1f}%", f"+{(s['improved_hit_rate']-s['baseline_hit_rate'])*100:.1f}%")
+        m1.metric("Retrieval Hit Rate @ K", f"{s['improved_hit_rate']*100:.1f}%", f"+{(s['improved_hit_rate']-s['baseline_hit_rate'])*100:.1f}%")
         m2.metric("Groundedness Score", f"{s['improved_groundedness']*100:.1f}%", f"+{(s['improved_groundedness']-s['baseline_groundedness'])*100:.1f}%")
         m3.metric("Citation Accuracy", f"{s['improved_citation_acc']*100:.1f}%", f"+{(s['improved_citation_acc']-s['baseline_citation_acc'])*100:.1f}%")
         m4.metric("Hallucination Rate", f"{s['improved_hallucination_rate']*100:.1f}%", f"-{(s['baseline_hallucination_rate']-s['improved_hallucination_rate'])*100:.1f}%", delta_color="inverse")
 
         st.markdown("---")
         df_chart = pd.DataFrame({
-            "Metric": ["Retrieval Hit Rate", "Groundedness Score", "Citation Accuracy", "Hallucination Rate"],
+            "Metric": ["Retrieval Hit Rate @ K", "Groundedness Score", "Citation Accuracy", "Hallucination Rate"],
             "Baseline RAG": [s["baseline_hit_rate"]*100, s["baseline_groundedness"]*100, s["baseline_citation_acc"]*100, s["baseline_hallucination_rate"]*100],
             "Improved Enterprise RAG": [s["improved_hit_rate"]*100, s["improved_groundedness"]*100, s["improved_citation_acc"]*100, s["improved_hallucination_rate"]*100]
         })
+
 
         fig = px.bar(df_chart, x="Metric", y=["Baseline RAG", "Improved Enterprise RAG"], barmode="group",
                      title="Baseline vs. Improved RAG Accuracy Metrics (%)",
