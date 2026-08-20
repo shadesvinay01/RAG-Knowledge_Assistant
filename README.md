@@ -145,7 +145,8 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=your_app_insights_connection_string
 
 ## 🧪 Step 4 — RAG Quantitative Evaluation Benchmark
 
-Evaluated across benchmark test cases using custom evaluation metrics (`eval/evaluate.py`):
+Evaluated across 32 benchmark test cases using custom evaluation metrics (`eval/evaluate.py`).  
+*Note: Results below reflect **Offline / Local Evaluation Benchmark Mode** (allowing offline reproducible testing without requiring active Azure cloud subscription billing).*
 
 | Evaluation Metric | Baseline RAG (Naive) | Improved Enterprise RAG | Net Delta Improvement |
 |---|---|---|---|
@@ -153,9 +154,10 @@ Evaluated across benchmark test cases using custom evaluation metrics (`eval/eva
 | **Groundedness Score** | 100.0% | **75.4%** | Grounded against evidence |
 | **Citation Accuracy** | 65.6% | **71.9%** | **+6.2%** 📌 |
 | **Hallucination Rate (Lower is better)** | 12.5% | **3.1%** | **-9.4%** 🛡️ |
-| **Average Query Latency (ms)** | 24.0 ms | **24.4 ms** | **Fast hybrid index lookup** |
+| **Average Query Latency (ms)** | 24.0 ms | **24.4 ms** | **Offline local hybrid lookup** |
 
-*Note: Evaluation results generated dynamically across 32 benchmark test scenarios via `eval/evaluate.py` and saved to `eval/eval_results.json`.*
+*Source of Truth: Metrics generated dynamically via `eval/evaluate.py` and stored in `eval/eval_results.json`.*
+
 
 
 

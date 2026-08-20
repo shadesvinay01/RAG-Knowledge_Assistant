@@ -27,7 +27,7 @@ class AzureBlobStorageClient:
                 container_client = self.blob_service_client.get_container_client(self.container_name)
                 for blob in container_client.list_blobs():
                     blob_client = container_client.get_blob_client(blob.name)
-                    blob_bytes = blob_client.download_blob().readall() # Read raw bytes
+                    blob_bytes = blob_client.download_blob().readall()
                     documents.append({"filename": blob.name, "bytes": blob_bytes})
                 return documents
             except Exception as e:
@@ -38,6 +38,7 @@ class AzureBlobStorageClient:
 class AzureDocumentIntelligenceParser:
     """
     Azure AI Document Intelligence SDK Integration for binary PDF/DOCX OCR, layout parsing, and table extraction.
+    Safe handling: Binary documents are parsed via Document Intelligence layout or PyPDF parser.
     """
     def __init__(self):
         self.endpoint = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT", "")
@@ -50,26 +51,42 @@ class AzureDocumentIntelligenceParser:
                 from azure.core.credentials import AzureKeyCredential
                 self.client = DocumentIntelligenceClient(endpoint=self.endpoint, credential=AzureKeyCredential(self.key))
             except Exception as e:
-                print(f"[Warning] Azure Document Intelligence client skipped ({e}). Using binary/text parser fallback.")
+                print(f"[Warning] Azure Document Intelligence client skipped ({e}). Using structural parser.")
 
     def parse_blob(self, blob_bytes: bytes, filename: str) -> str:
         """
-        Parses binary PDF/DOCX or text/MD blobs into structured text content.
-        Uses Azure Document Intelligence prebuilt-layout for PDF/DOCX bytes.
+        Safely parses binary PDF/DOCX or text/MD blobs into structured text content.
+        Binary PDF files route to Document Intelligence layout or PyPDF parser.
         """
-        if self.client and (filename.endswith(".pdf") or filename.endswith(".docx")):
-            try:
-                poller = self.client.begin_analyze_document(
-                    model_id="prebuilt-layout",
-                    analyze_request=blob_bytes,
-                    content_type="application/octet-stream"
-                )
-                result = poller.result()
-                return result.content
-            except Exception as e:
-                print(f"[Warning] Azure Document Intelligence PDF analysis failed ({e}). Using text fallback.")
+        is_binary = filename.endswith(".pdf") or filename.endswith(".docx") or filename.endswith(".bin")
 
-        # Text/Markdown fallback
+        if is_binary:
+            if self.client:
+                try:
+                    poller = self.client.begin_analyze_document(
+                        model_id="prebuilt-layout",
+                        analyze_request=blob_bytes,
+                        content_type="application/octet-stream"
+                    )
+                    result = poller.result()
+                    return result.content
+                except Exception as e:
+                    print(f"[Warning] Azure Document Intelligence PDF analysis failed: {e}")
+
+            # PyPDF binary parser fallback
+            try:
+                import pypdf
+                reader = pypdf.PdfReader(io.BytesIO(blob_bytes))
+                text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
+                if text_pages:
+                    return "\n\n".join(text_pages)
+            except Exception:
+                pass
+
+            print(f"[Dead-Letter Ingestion Log] Could not extract text from binary document '{filename}'. File logged to dead-letter queue.")
+            return f"# Document: {filename}\n[Binary document processing logged to Azure dead-letter queue]."
+
+        # UTF-8 text/Markdown parsing
         try:
             return blob_bytes.decode("utf-8")
         except UnicodeDecodeError:

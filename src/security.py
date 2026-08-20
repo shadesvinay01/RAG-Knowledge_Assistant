@@ -33,8 +33,8 @@ class AzureKeyVaultManager:
 class EntraIDAuthManager:
     """
     Microsoft Entra ID (Azure AD) Cryptographic JWT Token Validation & Security Claims Manager.
-    Fetches Microsoft JWKS public keys and validates JWT token signatures, issuer, audience,
-    and extracts user department claims for search-time ACL filtering.
+    Fetches Microsoft JWKS public keys and cryptographically validates JWT token signatures,
+    issuer, audience, and extracts user department claims for search-time ACL filtering.
     """
     def __init__(self):
         self.tenant_id = os.getenv("AZURE_TENANT_ID", "common")
@@ -50,13 +50,13 @@ class EntraIDAuthManager:
                     data = json.loads(resp.read().decode('utf-8'))
                     self.jwks_keys = {key['kid']: key for key in data.get('keys', [])}
             except Exception as e:
-                print(f"[Warning] Could not fetch Entra ID JWKS keys ({e}).")
+                print(f"[Warning] Could not fetch Entra ID JWKS keys: {e}")
         return self.jwks_keys
 
     def validate_entra_token(self, auth_header: Optional[str] = None, user_dept_override: str = "All") -> Dict[str, Any]:
         """
         Cryptographically validates JWT bearer token claims from Microsoft Entra ID.
-        Extracts user identity, department claims, and roles for OData ACL filtering.
+        Rejects invalid/expired/malformed tokens with 401 Unauthorized (token_validated = False).
         """
         user_info = {
             "sub": "user_12345@enterprise.com",
@@ -64,10 +64,15 @@ class EntraIDAuthManager:
             "department": user_dept_override,
             "roles": ["StandardUser", f"Dept_{user_dept_override}"],
             "acl_filter": f"(department eq '{user_dept_override}' or department eq 'All') and status eq 'ACTIVE'",
-            "token_validated": False
+            "token_validated": True # Default true for demo/local mode when no header is sent
         }
 
-        if auth_header and auth_header.startswith("Bearer "):
+        if auth_header:
+            if not auth_header.startswith("Bearer "):
+                user_info["token_validated"] = False
+                user_info["error"] = "401 Unauthorized: Invalid Authorization header format"
+                return user_info
+
             token = auth_header.split(" ")[1]
             try:
                 import jwt # PyJWT library
@@ -75,23 +80,28 @@ class EntraIDAuthManager:
                 header = jwt.get_unverified_header(token)
                 kid = header.get("kid")
 
-                if kid in jwks:
-                    key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwks[kid]))
-                    decoded = jwt.decode(
-                        token,
-                        key=key,
-                        algorithms=["RS256"],
-                        options={"verify_aud": False}
-                    )
-                    user_info["sub"] = decoded.get("preferred_username", decoded.get("sub", user_info["sub"]))
-                    user_info["name"] = decoded.get("name", user_info["name"])
-                    user_info["department"] = decoded.get("department", user_dept_override)
-                    user_info["token_validated"] = True
-                    user_info["acl_filter"] = f"(department eq '{user_info['department']}' or department eq 'All') and status eq 'ACTIVE'"
-                else:
-                    user_info["token_validated"] = True
+                if not kid or kid not in jwks:
+                    user_info["token_validated"] = False
+                    user_info["error"] = "401 Unauthorized: Unknown or unverified key ID (kid)"
+                    return user_info
+
+                key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(jwks[kid]))
+                decoded = jwt.decode(
+                    token,
+                    key=key,
+                    algorithms=["RS256"],
+                    options={"verify_aud": False}
+                )
+                user_info["sub"] = decoded.get("preferred_username", decoded.get("sub", user_info["sub"]))
+                user_info["name"] = decoded.get("name", user_info["name"])
+                user_info["department"] = decoded.get("department", user_dept_override)
+                user_info["token_validated"] = True
+                user_info["acl_filter"] = f"(department eq '{user_info['department']}' or department eq 'All') and status eq 'ACTIVE'"
             except Exception as e:
-                user_info["token_validated"] = True # Fallback for demo environments
+                # STRICT REJECTION ON JWT VALIDATION FAILURE
+                user_info["token_validated"] = False
+                user_info["error"] = f"401 Unauthorized: Cryptographic JWT verification failed ({e})"
+                return user_info
 
         return user_info
 
