@@ -9,8 +9,9 @@ class Chunk:
         doc_name: str,
         content: str,
         header: str,
-        effective_date: str = "2024-01-01",
+        effective_date: str = "2025-01-01",
         version: str = "1.0",
+        status: str = "ACTIVE",
         department: str = "All",
         tier: str = "All",
         parent_content: str = "",
@@ -23,6 +24,7 @@ class Chunk:
         self.header = header
         self.effective_date = effective_date
         self.version = version
+        self.status = status
         self.department = department
         self.tier = tier
         self.parent_content = parent_content
@@ -37,6 +39,7 @@ class Chunk:
             "header": self.header,
             "effective_date": self.effective_date,
             "version": self.version,
+            "status": self.status,
             "department": self.department,
             "tier": self.tier,
             "parent_content": self.parent_content,
@@ -46,7 +49,7 @@ class Chunk:
 class HierarchicalChunker:
     """
     Advanced semantic & hierarchical chunker.
-    Parses document headers, extracts metadata (effective date, version, department, tier),
+    Parses document headers, extracts metadata (effective date, version, status, department, tier),
     and creates chunks with parent-child linkage to prevent 'Wrong Chunk' failure mode.
     """
     def __init__(self, chunk_size: int = 400, overlap: int = 80):
@@ -59,6 +62,7 @@ class HierarchicalChunker:
             "doc_name": filename,
             "effective_date": "2025-01-01",
             "version": "2025.1",
+            "status": "ACTIVE",
             "department": "All",
             "tier": "All"
         }
@@ -81,8 +85,10 @@ class HierarchicalChunker:
 
         if "2024" in filename or "2024" in text:
             meta["version"] = "2024"
+            meta["status"] = "SUPERSEDED" # 2024 policy superseded by 2026 policy
         elif "2026" in filename or "2026" in text:
             meta["version"] = "2026"
+            meta["status"] = "ACTIVE"
 
         return meta
 
@@ -100,7 +106,6 @@ class HierarchicalChunker:
             header_match = re.match(r'^(##?\s+[^\n\r]+)', section_clean)
             header = header_match.group(1).replace('#', '').strip() if header_match else "Overview"
             
-            # Words tokenization split with overlap
             words = section_clean.split()
             if len(words) <= self.chunk_size:
                 c = Chunk(
@@ -111,6 +116,7 @@ class HierarchicalChunker:
                     header=header,
                     effective_date=metadata["effective_date"],
                     version=metadata["version"],
+                    status=metadata["status"],
                     department=metadata["department"],
                     tier=metadata["tier"],
                     parent_content=section_clean,
@@ -131,9 +137,10 @@ class HierarchicalChunker:
                         header=header,
                         effective_date=metadata["effective_date"],
                         version=metadata["version"],
+                        status=metadata["status"],
                         department=metadata["department"],
                         tier=metadata["tier"],
-                        parent_content=section_clean, # Full section preserved as parent context
+                        parent_content=section_clean,
                         chunk_index=global_chunk_idx
                     )
                     chunks.append(c)

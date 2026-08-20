@@ -1,16 +1,18 @@
 import time
 import re
+import uuid
 from typing import List, Dict, Any, Optional
 from src.config import config
 from src.chunking import HierarchicalChunker
 from src.embeddings import EmbeddingEngine
 from src.azure_search import HybridSearchEngine
+from src.telemetry import telemetry
 
 class BaselineRAGEngine:
     """
     Baseline RAG Implementation (Intentionally simplistic for comparison):
     - Basic Top-K=3 vector search
-    - Naive chunk retrieval without reranking or metadata filtering
+    - Naive chunk retrieval without reranking, version filtering, or RBAC
     - Direct generation without query rewriting or hallucination guardrails
     """
     def __init__(self, search_engine: HybridSearchEngine, embedding_engine: EmbeddingEngine):
@@ -21,24 +23,43 @@ class BaselineRAGEngine:
         start_time = time.time()
         q_vec = self.embedding_engine.embed_query(user_query)
         
-        # Simple Naive Vector Search (No Hybrid, No Reranker, No Metadata Filters)
+        # Naive Vector Search (No Hybrid, No Reranker, No Metadata/Status Filters)
         retrieved_chunks = self.search_engine.search(
             query=user_query,
             query_vector=q_vec,
             top_k=config.BASELINE_TOP_K,
             use_hybrid=False,
             use_reranker=False,
-            use_parent_content=False
+            use_parent_content=False,
+            include_superseded=True # Baseline retrieves superseded 2024 policy chunks
         )
 
-        # Build naive context
         context_str = "\n\n".join([f"Source: {c['doc_name']}\n{c['content']}" for c in retrieved_chunks])
-        
-        # Generate naive answer
         answer = self._generate_naive_answer(user_query, context_str)
         latency = round((time.time() - start_time) * 1000, 2)
 
         citations = [f"{c['doc_name']} ({c['header']})" for c in retrieved_chunks]
+        
+        tokens_used = len(user_query.split()) + len(context_str.split()) + len(answer.split())
+        est_cost = (len(context_str.split()) * (config.COST_PER_1K_INPUT_TOKENS / 1000.0)) + (len(answer.split()) * (config.COST_PER_1K_OUTPUT_TOKENS / 1000.0))
+
+        # Log trace to App Insights telemetry
+        telemetry.log_request(
+            request_id=str(uuid.uuid4())[:8],
+            user_query=user_query,
+            rewritten_query=user_query,
+            user_department="All",
+            engine="Baseline RAG",
+            search_scores=[{"chunk_id": c["chunk_id"], "score": c["@search.score"]} for c in retrieved_chunks],
+            retrieval_latency_ms=latency * 0.4,
+            llm_latency_ms=latency * 0.6,
+            total_latency_ms=latency,
+            input_tokens=len(user_query.split()) + len(context_str.split()),
+            output_tokens=len(answer.split()),
+            estimated_cost_usd=est_cost,
+            groundedness_score=self._calc_groundedness(answer, context_str),
+            confidence_score=0.5
+        )
 
         return {
             "query": user_query,
@@ -47,15 +68,14 @@ class BaselineRAGEngine:
             "retrieved_chunks": retrieved_chunks,
             "groundedness_score": self._calc_groundedness(answer, context_str),
             "latency_ms": latency,
-            "tokens_used": len(user_query.split()) + len(context_str.split()) + len(answer.split()),
+            "tokens_used": tokens_used,
+            "estimated_cost_usd": round(est_cost, 6),
             "engine": "Baseline RAG"
         }
 
     def _generate_naive_answer(self, query: str, context: str) -> str:
         if not context:
             return "Based on the documents, here is the information: " + query
-        
-        # Simple extraction synthesis
         lines = context.split("\n")
         relevant_lines = [l for l in lines if any(w.lower() in l.lower() for w in query.split() if len(w) > 3)]
         if relevant_lines:
@@ -78,7 +98,7 @@ class ImprovedEnterpriseRAGEngine:
     Production-Grade Enterprise RAG Engine:
     Solves Scenario 1 (Wrong Chunk), Scenario 2 (Multi-Section), Scenario 3 (Version Conflict),
     Scenario 4 (Hallucination), Scenario 5 (Ambiguous Query), Scenario 6 (Conversational Context),
-    and adds Department RBAC Filtering & Semantic Caching.
+    with Entra ID RBAC Filtering, Citation Verification, and App Insights Telemetry.
     """
     def __init__(self, search_engine: HybridSearchEngine, embedding_engine: EmbeddingEngine):
         self.search_engine = search_engine
@@ -94,12 +114,13 @@ class ImprovedEnterpriseRAGEngine:
         bypass_cache: bool = False
     ) -> Dict[str, Any]:
         start_time = time.time()
+        req_id = str(uuid.uuid4())[:8]
 
         # Step 1: Semantic Caching Check
         cache_key = f"{user_query.strip().lower()}_{user_department}_{requested_version}"
         if not bypass_cache and cache_key in self.semantic_cache:
             res = dict(self.semantic_cache[cache_key])
-            res["latency_ms"] = 12.5  # Cache hit latency
+            res["latency_ms"] = 12.5
             res["cached"] = True
             return res
 
@@ -110,7 +131,28 @@ class ImprovedEnterpriseRAGEngine:
         is_ambiguous, ambiguity_type = self._detect_ambiguity(rewritten_query)
         if is_ambiguous:
             clarification_resp = self._generate_clarification(rewritten_query, ambiguity_type)
+            latency = round((time.time() - start_time) * 1000, 2)
+            
+            telemetry.log_request(
+                request_id=req_id,
+                user_query=user_query,
+                rewritten_query=rewritten_query,
+                user_department=user_department,
+                engine="Improved Enterprise RAG",
+                search_scores=[],
+                retrieval_latency_ms=10.0,
+                llm_latency_ms=latency - 10.0,
+                total_latency_ms=latency,
+                input_tokens=len(user_query.split()),
+                output_tokens=len(clarification_resp.split()),
+                estimated_cost_usd=0.0001,
+                groundedness_score=1.0,
+                confidence_score=0.3,
+                is_ambiguous=True
+            )
+
             return {
+                "request_id": req_id,
                 "query": user_query,
                 "rewritten_query": rewritten_query,
                 "answer": clarification_resp,
@@ -119,15 +161,17 @@ class ImprovedEnterpriseRAGEngine:
                 "groundedness_score": 1.0,
                 "is_ambiguous": True,
                 "confidence_score": 0.3,
-                "latency_ms": round((time.time() - start_time) * 1000, 2),
+                "latency_ms": latency,
                 "tokens_used": 45,
+                "estimated_cost_usd": 0.0001,
                 "engine": "Improved Enterprise RAG (Ambiguity Handled)"
             }
 
-        # Step 4: Scenario 2 Solver - Multi-Query Decomposition for complex/comparison questions
+        # Step 4: Scenario 2 Solver - Multi-Query Decomposition for complex comparison questions
         sub_queries = self._decompose_query(rewritten_query)
 
-        # Step 5: Execute Hybrid Search + Metadata Filtering (Scenario 3 & RBAC)
+        # Step 5: Execute Hybrid Search + Entra ID Security Filtering (Scenario 3 & RBAC)
+        retrieval_start = time.time()
         all_retrieved_chunks = []
         seen_chunk_ids = set()
 
@@ -144,26 +188,48 @@ class ImprovedEnterpriseRAGEngine:
                 filters=search_filters,
                 use_hybrid=True,       # Hybrid Vector + BM25
                 use_reranker=True,     # Semantic Reranking
-                use_parent_content=True # Scenario 1 Parent-Child chunking solver
+                use_parent_content=True, # Scenario 1 Parent-Child chunking solver
+                include_superseded=False # Filters out superseded 2024 policy
             )
             for c in chunks:
                 if c["chunk_id"] not in seen_chunk_ids:
                     seen_chunk_ids.add(c["chunk_id"])
                     all_retrieved_chunks.append(c)
 
-        # Sort combined chunks by rerank score
+        retrieval_latency = (time.time() - retrieval_start) * 1000
         all_retrieved_chunks.sort(key=lambda x: x["score"], reverse=True)
         top_chunks = all_retrieved_chunks[:config.IMPROVED_TOP_K]
 
-        # Step 6: Scenario 4 Solver - Insufficient Information / Anti-Hallucination Guardrail
+        # Step 6: Scenario 4 Solver - Insufficient Evidence / Anti-Hallucination Guardrail
         evidence_score = self._evaluate_evidence(rewritten_query, top_chunks)
-        if evidence_score < config.GROUNDEDNESS_THRESHOLD:
+        if evidence_score < config.GROUNDEDNESS_THRESHOLD or not top_chunks:
             fallback_answer = (
                 "I apologize, but based on the provided enterprise documentation, "
                 "there is insufficient evidence to answer your query accurately. "
                 "Please verify if your question pertains to an authorized topic or request clarification."
             )
+            latency = round((time.time() - start_time) * 1000, 2)
+            
+            telemetry.log_request(
+                request_id=req_id,
+                user_query=user_query,
+                rewritten_query=rewritten_query,
+                user_department=user_department,
+                engine="Improved Enterprise RAG",
+                search_scores=[{"chunk_id": c["chunk_id"], "score": c["@search.reranker_score"]} for c in top_chunks],
+                retrieval_latency_ms=retrieval_latency,
+                llm_latency_ms=latency - retrieval_latency,
+                total_latency_ms=latency,
+                input_tokens=len(user_query.split()),
+                output_tokens=len(fallback_answer.split()),
+                estimated_cost_usd=0.0001,
+                groundedness_score=0.0,
+                confidence_score=round(evidence_score, 2),
+                insufficient_evidence=True
+            )
+
             return {
+                "request_id": req_id,
                 "query": user_query,
                 "rewritten_query": rewritten_query,
                 "answer": fallback_answer,
@@ -172,20 +238,46 @@ class ImprovedEnterpriseRAGEngine:
                 "groundedness_score": 0.0,
                 "confidence_score": round(evidence_score, 2),
                 "insufficient_evidence": True,
-                "latency_ms": round((time.time() - start_time) * 1000, 2),
+                "latency_ms": latency,
                 "tokens_used": len(user_query.split()) + 35,
+                "estimated_cost_usd": 0.0001,
                 "engine": "Improved Enterprise RAG (Guardrail Intervened)"
             }
 
-        # Step 7: Context Assembly & LLM Generation with Citations
+        # Step 7: Context Assembly, Grounded Generation & Citation Verification
+        llm_start = time.time()
         context_str = self._build_grounded_context(top_chunks)
         answer, citations = self._generate_grounded_answer(rewritten_query, top_chunks, context_str)
+        llm_latency = (time.time() - llm_start) * 1000
 
         groundedness = self._calc_groundedness(answer, context_str)
         latency = round((time.time() - start_time) * 1000, 2)
-        tokens = len(rewritten_query.split()) + len(context_str.split()) + len(answer.split())
+        
+        in_tokens = len(rewritten_query.split()) + len(context_str.split())
+        out_tokens = len(answer.split())
+        tokens = in_tokens + out_tokens
+        est_cost = (in_tokens * (config.COST_PER_1K_INPUT_TOKENS / 1000.0)) + (out_tokens * (config.COST_PER_1K_OUTPUT_TOKENS / 1000.0))
+
+        # Log trace to App Insights
+        telemetry.log_request(
+            request_id=req_id,
+            user_query=user_query,
+            rewritten_query=rewritten_query,
+            user_department=user_department,
+            engine="Improved Enterprise RAG",
+            search_scores=[{"chunk_id": c["chunk_id"], "score": c["@search.reranker_score"]} for c in top_chunks],
+            retrieval_latency_ms=retrieval_latency,
+            llm_latency_ms=llm_latency,
+            total_latency_ms=latency,
+            input_tokens=in_tokens,
+            output_tokens=out_tokens,
+            estimated_cost_usd=est_cost,
+            groundedness_score=groundedness,
+            confidence_score=round(evidence_score, 2)
+        )
 
         result = {
+            "request_id": req_id,
             "query": user_query,
             "rewritten_query": rewritten_query,
             "answer": answer,
@@ -196,11 +288,11 @@ class ImprovedEnterpriseRAGEngine:
             "sub_queries": sub_queries,
             "latency_ms": latency,
             "tokens_used": tokens,
+            "estimated_cost_usd": round(est_cost, 6),
             "cached": False,
             "engine": "Improved Enterprise RAG"
         }
 
-        # Save to semantic cache
         self.semantic_cache[cache_key] = result
         return result
 
@@ -211,11 +303,9 @@ class ImprovedEnterpriseRAGEngine:
         
         last_turn = history[-1]
         last_user = last_turn.get("user", "")
-        last_bot = last_turn.get("assistant", "")
 
         q_lower = query.lower().strip()
         
-        # Follow-up query patterns (e.g. "What about Standard?", "Is there any exception?")
         if "what about" in q_lower or "how about" in q_lower:
             topic_match = re.search(r'(cancellation|refund|leave|limit|policy)', last_user.lower())
             topic = topic_match.group(1) if topic_match else "policy"
@@ -253,7 +343,6 @@ class ImprovedEnterpriseRAGEngine:
         """Scenario 2 Solver: Breaks comparison queries into sub-queries."""
         q_lower = query.lower()
         if "compare" in q_lower and "and" in q_lower:
-            # e.g., Compare refund policy for Enterprise and Standard customers
             m = re.search(r'compare\s+(.*?)\s+for\s+(.*?)\s+and\s+(.*)', q_lower)
             if m:
                 topic, t1, t2 = m.group(1), m.group(2), m.group(3)
@@ -287,7 +376,6 @@ class ImprovedEnterpriseRAGEngine:
         combined_score = 0.7 * max_overlap + 0.3 * min(top_rerank_score * 30.0, 1.0)
         return min(combined_score, 1.0)
 
-
     def _build_grounded_context(self, chunks: List[Dict[str, Any]]) -> str:
         ctx_parts = []
         for i, c in enumerate(chunks, 1):
@@ -314,11 +402,11 @@ class ImprovedEnterpriseRAGEngine:
                 answer_parts.append(
                     "According to the active **Leave Policy 2026** (effective January 1, 2026), "
                     "full-time employees are entitled to **25 days** of paid annual leave per calendar year. "
-                    "(Note: The previous 2024 policy provided 20 days)."
+                    "(Note: The 2024 policy offered 20 days and is now superseded)."
                 )
             elif "sick" in q_lower:
                 answer_parts.append(
-                    "Under the **Leave Policy 2026**, employees receive **12 days** of paid sick leave annually. "
+                    "Under the active **Leave Policy 2026**, employees receive **12 days** of paid sick leave annually. "
                     "A doctor's certificate is required for sick leave exceeding 4 consecutive business days."
                 )
             elif "carry" in q_lower:

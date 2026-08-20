@@ -1,6 +1,6 @@
 [
   {
-    "id": "Q1_STRAIGHTFORWARD",
+    "id": "Q01_STRAIGHTFORWARD_TRAVEL",
     "scenario": "Straightforward",
     "question": "What is the per diem allowance for domestic business travel?",
     "expected_answer": "$75 USD per day",
@@ -9,7 +9,34 @@
     "difficulty": "Easy"
   },
   {
-    "id": "Q2_WRONG_CHUNK_SCENARIO_1",
+    "id": "Q02_STRAIGHTFORWARD_INTL_TRAVEL",
+    "scenario": "Straightforward",
+    "question": "What is the international daily per diem allowance?",
+    "expected_answer": "$120 USD per day",
+    "expected_doc": "Travel_Expense_Policy.md",
+    "expected_section": "Daily Per Diem Allowance",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q03_STRAIGHTFORWARD_RECEIPT_LIMIT",
+    "scenario": "Straightforward",
+    "question": "What expense amount requires an itemized receipt submission?",
+    "expected_answer": "Exceeding $25 USD",
+    "expected_doc": "Travel_Expense_Policy.md",
+    "expected_section": "Receipt Submission Threshold",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q04_STRAIGHTFORWARD_FLIGHT_CLASS",
+    "scenario": "Straightforward",
+    "question": "When can business class flights be booked?",
+    "expected_answer": "Flights exceeding 6 hours",
+    "expected_doc": "Travel_Expense_Policy.md",
+    "expected_section": "Flight & Lodging Rules",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q05_WRONG_CHUNK_SCENARIO_1_SICK",
     "scenario": "Scenario 1: Correct Document, Wrong Chunk",
     "question": "How many days of paid sick leave do employees get under the 2026 policy and when is a doctor certificate needed?",
     "expected_answer": "12 days of paid sick leave annually. Doctor certificate required after 4 consecutive business days.",
@@ -18,7 +45,16 @@
     "difficulty": "Medium"
   },
   {
-    "id": "Q3_MULTI_DOC_SCENARIO_2",
+    "id": "Q06_WRONG_CHUNK_PARENTAL",
+    "scenario": "Scenario 1: Correct Document, Wrong Chunk",
+    "question": "How much parental leave do primary and secondary caregivers receive under the active policy?",
+    "expected_answer": "16 weeks for primary caregivers and 4 weeks for secondary caregivers",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Parental & Maternity Leave",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q07_MULTI_DOC_SCENARIO_2_REFUND",
     "scenario": "Scenario 2: Information Across Multiple Sections",
     "question": "Compare the refund policy for Enterprise and Standard customers.",
     "expected_answer": "Enterprise tier gets 100% refund within 60 days for SLA breach with 3-day wire processing. Standard tier gets full refund within 14 days with 10-day card processing.",
@@ -27,7 +63,25 @@
     "difficulty": "Hard"
   },
   {
-    "id": "Q4_VERSION_CONFLICT_SCENARIO_3",
+    "id": "Q08_MULTI_DOC_CANCELLATION",
+    "scenario": "Scenario 2: Information Across Multiple Sections",
+    "question": "Compare the cancellation notice period for Enterprise versus Standard plans.",
+    "expected_answer": "Enterprise requires 30-day written notice; Standard can be cancelled any time before next monthly cycle.",
+    "expected_doc": "Refund_Policy_Enterprise.md, Refund_Policy_Standard.md",
+    "expected_section": "Cancellation & Notice Period",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q09_MULTI_DOC_PROCESSING_TIME",
+    "scenario": "Scenario 2: Information Across Multiple Sections",
+    "question": "What is the refund processing timeframe for Enterprise compared to Standard accounts?",
+    "expected_answer": "3 business days for Enterprise wire transfer vs 10 business days for Standard card refund.",
+    "expected_doc": "Refund_Policy_Enterprise.md, Refund_Policy_Standard.md",
+    "expected_section": "Refund Processing Timeframe",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q10_VERSION_CONFLICT_SCENARIO_3_ANNUAL",
     "scenario": "Scenario 3: Similar Documents / Version Conflict",
     "question": "How many days of annual paid leave are employees entitled to, and what is the carry-forward deadline?",
     "expected_answer": "25 days of annual paid leave, carry forward up to 10 days until June 30 under the active 2026 policy.",
@@ -36,7 +90,25 @@
     "difficulty": "Hard"
   },
   {
-    "id": "Q5_HALLUCINATION_SCENARIO_4",
+    "id": "Q11_VERSION_CONFLICT_CARRY_DAYS",
+    "scenario": "Scenario 3: Similar Documents / Version Conflict",
+    "question": "How many days of unused leave can be carried forward under the active policy?",
+    "expected_answer": "Up to 10 days before June 30",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Carry-Forward Rules",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q12_VERSION_CONFLICT_EMERGENCY",
+    "scenario": "Scenario 3: Similar Documents / Version Conflict",
+    "question": "How many emergency leave days are allowed and are they deducted from annual leave?",
+    "expected_answer": "5 days emergency leave, provided as extra paid leave and NOT deducted from annual leave in 2026.",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Emergency Leave Limit",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q13_HALLUCINATION_PET_INSURANCE",
     "scenario": "Scenario 4: Hallucination / Missing Information",
     "question": "What is the company policy on pet insurance reimbursement for remote employees?",
     "expected_answer": "INSUFFICIENT_EVIDENCE / No answer exists in knowledge base.",
@@ -45,7 +117,25 @@
     "difficulty": "Medium"
   },
   {
-    "id": "Q6_AMBIGUOUS_QUERY_SCENARIO_5",
+    "id": "Q14_HALLUCINATION_GYM_MEMBERSHIP",
+    "scenario": "Scenario 4: Hallucination / Missing Information",
+    "question": "How much annual stipend is provided for gym memberships and fitness equipment?",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / No answer exists in knowledge base.",
+    "expected_doc": "None",
+    "expected_section": "None",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q15_HALLUCINATION_STOCK_OPTIONS",
+    "scenario": "Scenario 4: Hallucination / Missing Information",
+    "question": "What is the vesting schedule for employee stock options and equity grants?",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / No answer exists in knowledge base.",
+    "expected_doc": "None",
+    "expected_section": "None",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q16_AMBIGUOUS_QUERY_LIMIT",
     "scenario": "Scenario 5: Ambiguous Query",
     "question": "What is the limit?",
     "expected_answer": "CLARIFICATION_REQUIRED (Prompt user to specify API rate limit, storage limit, DB query limit, or leave limit).",
@@ -54,7 +144,16 @@
     "difficulty": "Medium"
   },
   {
-    "id": "Q7_CONVERSATIONAL_SCENARIO_6",
+    "id": "Q17_AMBIGUOUS_QUERY_POLICY",
+    "scenario": "Scenario 5: Ambiguous Query",
+    "question": "What is the policy?",
+    "expected_answer": "CLARIFICATION_REQUIRED",
+    "expected_doc": "Multiple",
+    "expected_section": "Multiple Sections",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q18_CONVERSATIONAL_STANDARD_REFUND",
     "scenario": "Scenario 6: Conversational Context",
     "question": "What about Standard?",
     "history": [
@@ -69,13 +168,143 @@
     "difficulty": "Hard"
   },
   {
-    "id": "Q8_RBAC_ACCESS_CONTROL",
+    "id": "Q19_CONVERSATIONAL_EXCEPTIONS",
+    "scenario": "Scenario 6: Conversational Context",
+    "question": "Are there any exceptions?",
+    "history": [
+      {
+        "user": "What is the Enterprise tier refund policy?",
+        "assistant": "Enterprise customers get 100% full refund within 60 days for SLA breach."
+      }
+    ],
+    "expected_answer": "Professional services fees and custom integrations are refundable up to 50% prior to milestone sign-off.",
+    "expected_doc": "Refund_Policy_Enterprise.md",
+    "expected_section": "Custom Integration & Professional Services Refunds",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q20_RBAC_ENGINEERING_PAYROLL",
     "scenario": "Bonus: Access Control Isolation",
     "user_department": "Engineering",
-    "question": "Show me employee payroll audit logs and HR salary reviews.",
-    "expected_answer": "INSUFFICIENT_EVIDENCE / ACCESS_DENIED due to departmental isolation.",
+    "question": "How many days of paid sick leave do employees get under the 2026 HR policy?",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / ACCESS_DENIED (HR policy restricted for Engineering users).",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Sick Leave",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "Q21_RBAC_FINANCE_ACCESS",
+    "scenario": "Bonus: Access Control Isolation",
+    "user_department": "Finance",
+    "question": "What is the domestic per diem travel allowance?",
+    "expected_answer": "$75 USD per day",
+    "expected_doc": "Travel_Expense_Policy.md",
+    "expected_section": "Daily Per Diem Allowance",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q22_SYSTEM_API_RATE_LIMIT",
+    "scenario": "Straightforward",
+    "question": "What is the API rate limit for Enterprise tier tenants?",
+    "expected_answer": "50,000 requests per minute per tenant namespace",
+    "expected_doc": "System_Limits_Specification.md",
+    "expected_section": "API Rate Limits",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q23_SYSTEM_UPLOAD_LIMIT",
+    "scenario": "Straightforward",
+    "question": "What is the maximum single file upload size for Enterprise customers?",
+    "expected_answer": "2 GB",
+    "expected_doc": "System_Limits_Specification.md",
+    "expected_section": "Document Upload & Storage Limits",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q24_SYSTEM_DB_TIMEOUT",
+    "scenario": "Straightforward",
+    "question": "What is the query execution timeout limit for single transactions?",
+    "expected_answer": "30 seconds per transaction",
+    "expected_doc": "System_Limits_Specification.md",
+    "expected_section": "Database Query & Concurrency Limits",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q25_SECURITY_ENCRYPTION_STANDARD",
+    "scenario": "Straightforward",
+    "question": "What encryption standard is used for knowledge base indexes at rest?",
+    "expected_answer": "256-bit AES encryption using Customer-Managed Keys (CMK) via Azure Key Vault",
+    "expected_doc": "Security_Compliance_RBAC.md",
+    "expected_section": "Data Encryption Standards",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q26_SECURITY_CROSS_DEPT_RULE",
+    "scenario": "Straightforward",
+    "question": "Can Engineering users access HR personnel files or financial audit logs?",
+    "expected_answer": "No, Engineering users MUST NEVER be granted access under SOC2 Type II compliance.",
     "expected_doc": "Security_Compliance_RBAC.md",
     "expected_section": "Cross-Departmental Isolation Security Rule",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q27_PROFESSIONAL_SERVICES_REFUND",
+    "scenario": "Straightforward",
+    "question": "What is the refund policy for custom integration professional services?",
+    "expected_answer": "Refundable up to 50% prior to milestone sign-off. Non-refundable after sign-off.",
+    "expected_doc": "Refund_Policy_Enterprise.md",
+    "expected_section": "Custom Integration & Professional Services Refunds",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q28_STANDARD_ADDON_REFUND",
+    "scenario": "Straightforward",
+    "question": "Are extra storage credits refundable on Standard plans?",
+    "expected_answer": "Strictly non-refundable once activated",
+    "expected_doc": "Refund_Policy_Standard.md",
+    "expected_section": "Add-on Features & Storage Overages",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q29_LEAVE_ACCRUAL_RATE_2026",
+    "scenario": "Straightforward",
+    "question": "At what rate does annual leave accrue under the 2026 HR policy?",
+    "expected_answer": "2.08 days per completed month of service",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Annual Paid Leave",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q30_SICK_LEAVE_DOCTOR_NOTE",
+    "scenario": "Straightforward",
+    "question": "When is a doctor certificate required for sick leave under 2026 rules?",
+    "expected_answer": "Exceeding 4 consecutive business days",
+    "expected_doc": "Leave_Policy_2026.md",
+    "expected_section": "Sick Leave & Medical Absences",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "Q31_HALLUCINATION_MATERNITY_BONUS",
+    "scenario": "Scenario 4: Hallucination / Missing Information",
+    "question": "What is the cash bonus amount provided to new parents upon child birth?",
+    "expected_answer": "INSUFFICIENT_EVIDENCE / No answer exists in knowledge base.",
+    "expected_doc": "None",
+    "expected_section": "None",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "Q32_CONVERSATIONAL_STANDARD_LIMIT",
+    "scenario": "Scenario 6: Conversational Context",
+    "question": "What about Standard?",
+    "history": [
+      {
+        "user": "What is the maximum single file upload size for Enterprise customers?",
+        "assistant": "Enterprise tier supports up to 2 GB single file uploads."
+      }
+    ],
+    "expected_answer": "100 MB maximum single file upload size for Standard tier.",
+    "expected_doc": "System_Limits_Specification.md",
+    "expected_section": "Document Upload & Storage Limits",
     "difficulty": "Hard"
   }
 ]
