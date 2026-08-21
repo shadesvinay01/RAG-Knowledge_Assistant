@@ -252,7 +252,3 @@ Evaluated across 32 benchmark test cases using custom evaluation metrics (`eval/
 ```
 
 ---
-
-## 🎥 Video Presentation Script
-
-See [docs/PRESENTATION_SCRIPT.md](file:///c:/Users/DELL/Downloads/ass/docs/PRESENTATION_SCRIPT.md) for the 5-minute recording transcript and slide breakdown.
